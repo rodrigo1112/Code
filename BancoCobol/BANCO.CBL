@@ -35,9 +35,11 @@ MAIN-PROGRAM.
         ACCEPT WS-OPCION
         EVALUATE TRUE
             WHEN OPC-ALTAS    
-                CALL 'CONSULTA'
+                CALL 'ALTACTA'
             WHEN OPC-DEPOSITO
                 CALL 'DEPOSITO'
+            WHEN OPC-CONSULTA
+                CALL 'CONSULTA'
             WHEN OPC-RETIRO
                 CALL 'RETIRO'
             WHEN OPC-LISTAR
