@@ -1,0 +1,63 @@
+*> *****************************************************************
+*>  SUBPROGRAMA: ALTACTA.CBL
+*>  ALTA DE NUEVAS CUENTAS
+*> *****************************************************************
+
+IDENTIFICATION DIVISION.
+PROGRAM-ID. ALTACTA.
+
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+    SELECT CUENTAS ASSIGN TO "cuentas.dat"
+        ORGANIZATION IS LINE SEQUENTIAL.
+
+DATA DIVISION.
+FILE SECTION.
+FD CUENTAS.
+COPY BANCO REPLACING REG-CUENTA BY REG-CUENTA-FD.
+
+WORKING-STORAGE SECTION.
+COPY BANCO REPLACING REG-CUENTA BY WS-CUENTA.
+01 WS-EOF           PIC X VALUE 'N'.
+    88 WS-FIN        VALUE 'S'.
+01 WS-ULTIMO-NUM    PIC 9(5) VALUE 0.
+01 WS-SALDO-INI     PIC 9(7)V99 VALUE 0.
+
+PROCEDURE DIVISION.
+INICIO.
+    OPEN I-O CUENTAS.
+
+    MOVE 0 TO WS-ULTIMO-NUM
+    MOVE 'N' TO WS-EOF
+    PERFORM UNTIL WS-FIN
+        READ CUENTAS NEXT
+            AT END
+                MOVE 'S' TO WS-EOF
+            NOT AT END
+                IF CU-NUMERO OF REG-CUENTA-FD > WS-ULTIMO-NUM
+                    MOVE CU-NUMERO OF REG-CUENTA-FD
+                      TO WS-ULTIMO-NUM
+                END-IF
+    END-PERFORM.  
+
+
+    ADD 1 TO WS-ULTIMO-NUM.          
+    MOVE WS-ULTIMO-NUM TO CU-NUMERO OF REG-CUENTA-FD.
+    
+    DISPLAY "Alta de nueva cuenta."
+    DISPLAY "Número asignado: " WS-ULTIMO-NUM.
+    DISPLAY "Nombre del titular: " WITH NO ADVANCING.
+    ACCEPT CU-NOMBRE OF REG-CUENTA-FD.
+    DISPLAY "Saldo inicial: " WITH NO ADVANCING.
+    ACCEPT WS-SALDO-INI.
+    MOVE WS-SALDO-INI TO CU-SALDO OF REG-CUENTA-FD.
+
+    WRITE REG-CUENTA-FD
+    DISPLAY "Cuenta creada con éxito."
+
+    CLOSE CUENTAS.
+    EXIT PROGRAM.
+    
+    
+
