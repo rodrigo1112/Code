@@ -11,31 +11,33 @@ AUTHOR. RODRIGO GIRARDI
 
 
 DATA DIVISION.
-*>*************************************
+*> *************************************
 WORKING-STORAGE SECTION.
-*>*************************************
+*> *************************************
 77  FILLER         PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.
 
 
-01 WS-OPCION         PIC 9.     VALUE 9.
-    88 OPC-SALIR                VALUE 0.
-    88 OPC-ALTAS                VALUE 1.
-    88 OPC-CONSULTA             VALUE 2.
-    88 OPC-DEPOSITO             VALUE 3.
-    88 OPC-RETIRO               VALUE 4.
-    88 OPC-LISTAR               VALUE 5.
-    88 OPC-MOVIM                VALUE 6.
+01  WS-OPCION         PIC 9        VALUE 9.
+    88 OPC-SALIR                   VALUE 0.
+    88 OPC-ALTAS                   VALUE 1.
+    88 OPC-CONSULTA                VALUE 2.
+    88 OPC-DEPOSITO                VALUE 3.
+    88 OPC-RETIRO                  VALUE 4.
+    88 OPC-LISTAR                  VALUE 5.
+    88 OPC-MOVIM                   VALUE 6.
 
-01  WS-FLAG-FIN        PIC X    VALUE 'N'.
+01  WS-FLAG-FIN        PIC X       VALUE 'N'.
     88 WS-FIN-PROCESO  VALUE 'S'.
+
+77  WS-RC              PIC 9(4)    VALUE 0.   
 
 77  FILLER         PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
 
 
 PROCEDURE DIVISION.
-*>*************************************
+*> *************************************
 *>  CUERPO PRINCIPAL DEL PROGRAMA     *
-*>*************************************
+*> *************************************
 MAIN-PROGRAM.
     PERFORM 1000-INICIO   THRU  F-1000-INICIO.
     
@@ -75,10 +77,10 @@ F-1000-INICIO. EXIT.
         EVALUATE TRUE
             WHEN OPC-ALTAS    
                 CALL 'ALTACTA'
-            MOVE RETURN-CODE TO WS-RC
-            IF WS-RC IS NOT EQUAL 0   
-                DISPLAY '* ERROR EN ALTACTA = ' WS-RC
-            END-IF    
+                MOVE RETURN-CODE TO WS-RC
+                IF WS-RC IS NOT EQUAL 0   
+                    DISPLAY '* ERROR EN ALTACTA = ' WS-RC
+                END-IF    
             WHEN OPC-DEPOSITO
                 CALL 'DEPOSITO'
                 MOVE RETURN-CODE TO WS-RC      
@@ -113,7 +115,7 @@ F-1000-INICIO. EXIT.
                 SET WS-FIN-PROCESO TO TRUE   
             WHEN OTHER
                 DISPLAY "Opción no válida. Intente de nuevo."
-        END-EVALUATE   
+        END-EVALUATE.   
 
 F-2000-PROCESO. EXIT.
 
@@ -123,7 +125,8 @@ F-2000-PROCESO. EXIT.
 9999-FINAL.
 
     DISPLAY ' '.
-    DISPLAY "Gracias por usar el sistema bancario."
+    DISPLAY "Gracias por usar el sistema bancario.".
 
-F-9999-FINAL. EXIT   
+F-9999-FINAL. EXIT.
+   
     

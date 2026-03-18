@@ -56,19 +56,25 @@ F-MAIN-PROGRAM. GOBACK.
 *>***********************************
 1000-INICIO.
 
-*> INTENTA ABRIR EN I-O. SI NO EXISTE (FS=35) LO CREA CON
-*> OUTPUT, LO CIERRA Y LO REABRE EN I-O.
+*> ABRE EN INPUT PARA LEER. SI NO EXISTE (FS=35) LO CREA CON
+*> OUTPUT, LO CIERRA.
+*> EL EXTEND SE HACE EN 2000-PROCESO 
+*> DESPUES DE DETERMINAR EL ULTIMO NUMERO.
     
     OPEN INPUT CUENTAS
     
     IF WS-FS IS EQUAL TO '35'
         OPEN OUTPUT CUENTAS
+        IF WS-FS IS NOT EQUAL TO '00'
+            DISPLAY '"Error al crear cuentas.dat    = ' WS-FS
+            MOVE 9999 TO RETURN-CODE
+            SET WS-HAY-ERROR TO TRUE
+        END-IF 
         CLOSE CUENTAS
-        OPEN I-O CUENTAS 
-    END-IF.    
+    END-IF.       
         
     IF WS-FS IS NOT EQUAL TO '00'
-        DISPLAY "Error al abrir el archivo de cuentas. Código: " WS-FS
+        DISPLAY '*Error en open cuentas (input) = ' WS-FS
         MOVE 9999 TO RETURN-CODE
         SET WS-HAY-ERROR TO TRUE        
     END-IF.
@@ -80,13 +86,13 @@ F-1000-INICIO. EXIT.
 *>************************************
 2000-PROCESO.
 
-*> RECORRE EL ARCHIVO PARA DETERMINAR EL ULTIMO NUMERO USADO
+*> RECORRE EL ARCHIVO PARA DETERMINAR EL ULTIMO NUMERO
     
     MOVE 0   TO WS-ULTIMO-NUM.
     MOVE 'N' TO WS-EOF.
 
     PERFORM UNTIL WS-FIN
-        READ CUENTAS
+        READ CUENTAS NEXT
             AT END
                 MOVE 'S' TO WS-EOF
             NOT AT END
@@ -97,18 +103,32 @@ F-1000-INICIO. EXIT.
         END-READ
     END-PERFORM.
 
+    CLOSE CUENTAS.
+
+*> REABRE EN EXTEND PARA AGREGAR EL NUEVO REGISTRO AL FINAL
+    OPEN EXTEND CUENTAS
+    
+    IF WS-FS IS NOT EQUAL TO '00'
+        DISPLAY '* ERROR EN OPEN CUENTAS (EXTEND) = ' WS-FS
+        MOVE 9999 TO RETURN-CODE
+        SET WS-HAY-ERROR TO TRUE
+    END-IF.
+
+
+
 *> ASIGNA EL NUEVO NUMERO Y SOLICITA DATOS AL USUARIO
 
-    ADD 1 TO WS-ULTIMO-NUM.          
-    MOVE WS-ULTIMO-NUM TO CU-NUMERO OF REG-CUENTA-FD.
-    
-    DISPLAY "Alta de nueva cuenta."
-    DISPLAY "Número asignado: " WS-ULTIMO-NUM.
-    DISPLAY "Nombre del titular: " WITH NO ADVANCING.
-    ACCEPT CU-NOMBRE OF REG-CUENTA-FD.
-    DISPLAY "Saldo inicial: " WITH NO ADVANCING.
-    ACCEPT WS-SALDO-INI.
-    MOVE WS-SALDO-INI TO CU-SALDO OF REG-CUENTA-FD.
+    IF NOT WS-HAY-ERROR
+        ADD 1 TO WS-ULTIMO-NUM
+        MOVE WS-ULTIMO-NUM TO CU-NUMERO OF REG-CUENTA-FD
+
+        DISPLAY "Alta de nueva cuenta."
+        DISPLAY "Número asignado: " WS-ULTIMO-NUM.
+        DISPLAY "Nombre del titular: " WITH NO ADVANCING.
+        ACCEPT CU-NOMBRE OF REG-CUENTA-FD.
+        DISPLAY "Saldo inicial: " WITH NO ADVANCING.
+        ACCEPT WS-SALDO-INI.
+        MOVE WS-SALDO-INI TO CU-SALDO OF REG-CUENTA-FD.
 
 *>**************************** 
 *> GRABA EL NUEVO REGISTRO   *    
@@ -118,7 +138,6 @@ F-1000-INICIO. EXIT.
     IF WS-FS IS NOT EQUAL '00'
         DISPLAY '* ERROR EN WRITE CUENTAS         = ' WS-FS
         MOVE 9999 TO RETURN-CODE
-        SET WS-HAY-ERROR TO TRUE
     ELSE  
         DISPLAY '  Cuenta creada con exito.'
     END-IF.
